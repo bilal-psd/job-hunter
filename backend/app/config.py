@@ -23,14 +23,14 @@ class Settings(BaseSettings):
     OLLAMA_MODEL: str = "mistral"
     
     # Gemini Configuration
-    GEMINI_API_KEY: str = "AIzaSyAcqNER4VA3w6ovDsMBh5UHOlZZY8EG5xM"
+    GEMINI_API_KEY: str = ""  # Will be set from environment
     GEMINI_MODEL: str = "gemini-2.0-flash"
     
     # Redis Configuration
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379
     REDIS_DB: int = 0
-    REDIS_PASSWORD: str = ""
+    REDIS_PASSWORD: str = ""  # Will be set from environment
     
     # Cache Configuration
     CACHE_EXPIRATION: int = 86400  # 24 hours in seconds

@@ -21,6 +21,8 @@ backend/.installed.cfg
 backend/*.egg
 backend/MANIFEST
 backend/.env
+backend/.env.*
+!backend/.env.example
 backend/.venv
 backend/env/
 backend/venv/
@@ -45,7 +47,9 @@ frontend/npm-debug.log*
 frontend/yarn-debug.log*
 frontend/yarn-error.log*
 frontend/.pnpm-debug.log*
-frontend/.env*
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
 frontend/.vercel
 frontend/*.tsbuildinfo
 frontend/next-env.d.ts
@@ -60,11 +64,6 @@ frontend/next-env.d.ts
 # Project specific
 *.log
 jobs.csv
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
 
 # Redis
 *.rdb
