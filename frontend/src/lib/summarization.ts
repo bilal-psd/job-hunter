@@ -18,7 +18,8 @@ interface JobAnalysisResponse {
     estimated_salary_range: string;
 }
 
-const SUMMARIZATION_API_URL = process.env.NEXT_PUBLIC_SUMMARIZATION_API_URL || 'http://localhost:8001';
+// Use the main backend URL for summarization
+const BACKEND_API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL || 'http://localhost:8001';
 
 export async function analyzeJobDescription(
     description: string,
@@ -32,7 +33,7 @@ export async function analyzeJobDescription(
         logger.info(`Starting job analysis for URL: ${url}`, { context });
         logger.debug(`Analysis options: ${JSON.stringify(options)}`, { context });
 
-        const endpoint = `${SUMMARIZATION_API_URL}/api/v1/summarize`;
+        const endpoint = `${BACKEND_API_URL}/api/v1/summarize`;
         logger.info(`Making request to: ${endpoint}`, { context });
 
         const response = await fetch(endpoint, {
