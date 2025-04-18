@@ -12,6 +12,7 @@ class JobScrapingService:
     def __init__(self):
         logger.info("Initializing JobScrapingService...")
         self.settings = settings
+        self.INVALID_JOB_BUFFER_FACTOR = 3  # Scrape 3 times more jobs to account for invalid ones
         logger.info("JobScrapingService initialized successfully")
 
     def clean_job_data(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -46,8 +47,9 @@ class JobScrapingService:
             hours_old = int(params.get('hours_old', self.settings.DEFAULT_HOURS_OLD))
             site_name = params.get('site_name', self.settings.DEFAULT_SITE_NAME)
             
-            logger.info(f"Scraping parameters - Search: '{search_term}', Location: '{location}', "
-                       f"Results wanted: {results_wanted}, Hours old: {hours_old}, Sites: {site_name}")
+            # Calculate actual number of jobs to scrape with buffer
+            actual_results_wanted = int(results_wanted * self.INVALID_JOB_BUFFER_FACTOR)
+            logger.info(f"Scraping {actual_results_wanted} jobs to account for potential invalidations (requested: {results_wanted})")
             
             # Determine country based on location
             country_indeed = params.get('country_indeed') or self.get_country_from_location(location)
@@ -59,7 +61,7 @@ class JobScrapingService:
                 site_name=site_name,
                 search_term=search_term,
                 location=location,
-                results_wanted=results_wanted,
+                results_wanted=actual_results_wanted,
                 hours_old=hours_old,
                 country_indeed=country_indeed,
                 linkedin_fetch_description=True
@@ -70,6 +72,11 @@ class JobScrapingService:
             # Clean and format the data
             logger.info("Cleaning and formatting job data...")
             jobs_df = self.clean_job_data(jobs_df)
+            
+            # Limit to requested number of jobs
+            if len(jobs_df) > results_wanted:
+                jobs_df = jobs_df.head(results_wanted)
+                logger.info(f"Limited results to requested {results_wanted} jobs")
             
             logger.info("Job scraping process completed successfully")
             return jobs_df.to_dict('records')

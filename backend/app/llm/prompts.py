@@ -40,6 +40,7 @@ Job Description:
 
 Focus Areas: {', '.join(focus_areas)}
 Summary Length: {summary_length}
+Make sure estimated salary range is very concise and to the point, should not exceed 10 words. 
 """
     
     if experience_years is not None:

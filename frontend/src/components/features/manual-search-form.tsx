@@ -13,7 +13,7 @@ export function ManualSearchForm({ onSubmit, isLoading }: ManualSearchFormProps)
   const [formData, setFormData] = useState({
     search_term: '',
     location: '',
-    results_wanted: 20,
+    results_wanted: 5,
     hours_old: 72,
     site_name: ['linkedin'],
     country_indeed: 'worldwide',
