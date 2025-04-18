@@ -13,11 +13,13 @@ interface Job {
   description?: string;
   analysis?: {
     valid: boolean;
-    summary: string;
-    key_skills: string[];
-    required_experience: string;
-    company_culture: string;
-    estimated_salary_range: string;
+    analysis: {
+      summary: string;
+      key_skills: string[];
+      required_experience: string;
+      company_culture: string;
+      estimated_salary_range: string;
+    };
   };
   isAnalyzing?: boolean;
   analysisError?: string;
@@ -45,9 +47,9 @@ export function JobList({ jobs }: JobListProps) {
                 </a>
               </CardTitle>
             </div>
-            {job.analysis?.summary && (
+            {job.analysis?.analysis?.summary && (
               <CardDescription className="mt-2 text-[#8b949e]">
-                {job.analysis.summary}
+                {job.analysis.analysis.summary}
               </CardDescription>
             )}
           </CardHeader>
@@ -66,10 +68,10 @@ export function JobList({ jobs }: JobListProps) {
                   <Calendar className="mr-2 h-4 w-4" />
                   Posted: {job.date_posted}
                 </div>
-                {(job.salary || (job.analysis?.estimated_salary_range && job.analysis.estimated_salary_range !== "Not specified")) && (
+                {(job.salary || (job.analysis?.analysis?.estimated_salary_range && job.analysis.analysis.estimated_salary_range !== "Not specified")) && (
                   <div className="flex items-center text-[#238636]">
                     <DollarSign className="mr-2 h-4 w-4" />
-                    {job.salary || job.analysis?.estimated_salary_range}
+                    {job.salary || job.analysis?.analysis?.estimated_salary_range}
                   </div>
                 )}
               </div>
@@ -88,16 +90,16 @@ export function JobList({ jobs }: JobListProps) {
                 </div>
               )}
 
-              {job.analysis && !job.isAnalyzing && (
+              {job.analysis?.analysis && !job.isAnalyzing && (
                 <div className="space-y-4">
-                  {job.analysis.key_skills.length > 0 && (
+                  {job.analysis.analysis.key_skills && job.analysis.analysis.key_skills.length > 0 && (
                     <div>
                       <div className="flex items-center mb-2 text-[#8b949e]">
                         <Brain className="mr-2 h-4 w-4" />
                         <span className="font-medium">Key Skills</span>
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        {job.analysis.key_skills.map((skill, i) => (
+                        {job.analysis.analysis.key_skills.map((skill, i) => (
                           <Badge key={i} variant="secondary" className="bg-[#21262d] text-[#c9d1d9] border-[#30363d]">
                             {skill}
                           </Badge>
@@ -106,23 +108,23 @@ export function JobList({ jobs }: JobListProps) {
                     </div>
                   )}
 
-                  {job.analysis.required_experience && (
+                  {job.analysis.analysis.required_experience && (
                     <div>
                       <div className="flex items-center mb-2 text-[#8b949e]">
                         <Briefcase className="mr-2 h-4 w-4" />
                         <span className="font-medium">Experience Required</span>
                       </div>
-                      <p className="text-sm text-[#c9d1d9]">{job.analysis.required_experience}</p>
+                      <p className="text-sm text-[#c9d1d9]">{job.analysis.analysis.required_experience}</p>
                     </div>
                   )}
 
-                  {job.analysis.company_culture && (
+                  {job.analysis.analysis.company_culture && (
                     <div>
                       <div className="flex items-center mb-2 text-[#8b949e]">
                         <Users className="mr-2 h-4 w-4" />
                         <span className="font-medium">Company Culture</span>
                       </div>
-                      <p className="text-sm text-[#c9d1d9]">{job.analysis.company_culture}</p>
+                      <p className="text-sm text-[#c9d1d9]">{job.analysis.analysis.company_culture}</p>
                     </div>
                   )}
                 </div>
