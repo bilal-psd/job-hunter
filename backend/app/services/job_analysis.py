@@ -24,6 +24,7 @@ class JobAnalysisService:
         """
         Analyze a job description and extract relevant information.
         First checks cache, then uses LLM if not cached.
+        For cached results, performs a quick validation check.
         """
         try:
             logger.info(f"Starting job analysis for URL: {url}")
@@ -32,12 +33,24 @@ class JobAnalysisService:
 
             # Check cache first
             logger.info(f"Checking cache for URL: {url}")
-            cached_analysis = self.cache.get(url)
+            cached_analysis = self.cache.get_analysis(url)
+            
             if cached_analysis:
                 logger.info(f"Cache hit for URL: {url}")
-                return cached_analysis
+                # Perform quick validation
+                logger.info(f"Performing validation check for cached analysis")
+                is_valid = await self.llm_client.validate_job(
+                    job_description=description,
+                    experience_years=experience_years,
+                    required_skills=required_skills
+                )
+                
+                return {
+                    "valid": is_valid,
+                    "analysis": cached_analysis
+                }
 
-            # If not in cache, proceed with analysis
+            # If not in cache, proceed with full analysis
             logger.info(f"Cache miss for URL: {url}. Proceeding with LLM analysis")
             analysis = await self.llm_client.analyze_job(
                 job_description=description,
@@ -47,12 +60,23 @@ class JobAnalysisService:
                 required_skills=required_skills
             )
             
-            # Cache the result
-            logger.info(f"Caching analysis results for URL: {url}")
-            self.cache.set(url, analysis)
-            logger.info(f"Analysis completed and cached for URL: {url}")
+            # Extract analysis part for caching
+            analysis_part = {
+                "summary": analysis["summary"],
+                "key_skills": analysis["key_skills"],
+                "required_experience": analysis["required_experience"],
+                "company_culture": analysis["company_culture"],
+                "estimated_salary_range": analysis["estimated_salary_range"]
+            }
             
-            return analysis
+            # Cache the analysis part
+            logger.info(f"Caching analysis results for URL: {url}")
+            self.cache.set_analysis(url, analysis_part)
+            
+            return {
+                "valid": analysis["valid"],
+                "analysis": analysis_part
+            }
             
         except Exception as e:
             logger.error(f"Error analyzing job for URL {url}: {str(e)}", exc_info=True)

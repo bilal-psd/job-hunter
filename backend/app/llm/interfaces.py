@@ -11,7 +11,7 @@ class LLMClient(ABC):
         experience_years: Optional[int] = None,
         required_skills: Optional[List[str]] = None
     ) -> Dict:
-        """Analyze a job description using the LLM."""
+        """Perform full job analysis."""
         pass
 
     @abstractmethod
@@ -21,5 +21,15 @@ class LLMClient(ABC):
         system_prompt: Optional[str] = None,
         temperature: float = 0.7
     ) -> str:
-        """Generate a response from the LLM."""
+        """Generate a response using the LLM."""
+        pass
+
+    @abstractmethod
+    async def validate_job(
+        self,
+        job_description: str,
+        experience_years: Optional[int] = None,
+        required_skills: Optional[List[str]] = None
+    ) -> bool:
+        """Quick validation of job requirements."""
         pass 

@@ -1,6 +1,7 @@
 import json
 from typing import Dict, Optional
 import logging
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +28,6 @@ class ResponseParser:
                     raise ValueError("No JSON object found in response")
             except (json.JSONDecodeError, ValueError) as e:
                 logger.error(f"Failed to parse cleaned response: {e}")
-                # Return a structured error response
                 return {
                     "valid": False,
                     "summary": "Failed to parse model response",
@@ -61,4 +61,37 @@ class ResponseParser:
             if validated[key] is None:
                 validated[key] = "Not specified"
         
-        return validated 
+        return validated
+
+    @staticmethod
+    def parse_validation_response(response: str) -> bool:
+        """
+        Parse the validation response from the LLM.
+        Looks for clear indicators of validity in the response.
+        """
+        try:
+            # Try to parse as JSON first
+            try:
+                parsed = json.loads(response)
+                if isinstance(parsed, bool):
+                    return parsed
+                if isinstance(parsed, dict) and "valid" in parsed:
+                    return bool(parsed["valid"])
+            except json.JSONDecodeError:
+                pass
+
+            # If not JSON, look for clear text indicators
+            response_lower = response.lower().strip()
+            positive_indicators = ["true", "yes", "valid", "matches", "suitable", "appropriate"]
+            negative_indicators = ["false", "no", "invalid", "does not match", "unsuitable", "inappropriate"]
+
+            # Count matches for each indicator
+            positive_matches = sum(1 for indicator in positive_indicators if indicator in response_lower)
+            negative_matches = sum(1 for indicator in negative_indicators if indicator in response_lower)
+
+            # Return True if there are more positive matches than negative
+            return positive_matches > negative_matches
+
+        except Exception as e:
+            logger.error(f"Error parsing validation response: {e}")
+            return False 

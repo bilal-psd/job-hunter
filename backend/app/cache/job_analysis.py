@@ -16,7 +16,7 @@ class JobAnalysisCache:
         self.expiry_days = 7
         logger.info("JobAnalysisCache initialized successfully")
 
-    def get(self, url: str) -> Optional[dict]:
+    def get_analysis(self, url: str) -> Optional[dict]:
         """
         Retrieve job analysis from cache by URL.
         Returns None if not found.
@@ -35,9 +35,10 @@ class JobAnalysisCache:
             logger.error(f"Error retrieving from cache for key {cache_key}: {str(e)}", exc_info=True)
             return None
 
-    def set(self, url: str, analysis: dict) -> None:
+    def set_analysis(self, url: str, analysis: dict) -> None:
         """
         Store job analysis in cache with expiration.
+        Only stores the analysis part, not the validity.
         """
         cache_key = f"job_analysis:{url}"
         logger.debug(f"Storing cache entry for key: {cache_key}")
@@ -48,7 +49,7 @@ class JobAnalysisCache:
                 timedelta(days=self.expiry_days),
                 json.dumps(analysis)
             )
-            logger.debug(f"Successfully cached data for key: {cache_key} with {self.expiry_days} days expiration")
+            logger.debug(f"Successfully cached analysis for key: {cache_key} with {self.expiry_days} days expiration")
         except Exception as e:
             logger.error(f"Error storing in cache for key {cache_key}: {str(e)}", exc_info=True)
             raise 

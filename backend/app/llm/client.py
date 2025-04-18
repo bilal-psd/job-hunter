@@ -4,7 +4,7 @@ from typing import Dict, Optional, List
 from app.config import get_settings
 import logging
 import backoff
-from .prompts import get_system_prompt, get_analysis_prompt
+from .prompts import get_system_prompt, get_analysis_prompt, get_validation_prompt
 from .parser import ResponseParser
 import google.generativeai as genai
 from .interfaces import LLMClient
@@ -65,7 +65,7 @@ class OllamaClient(LLMClient):
             response = await self.generate(
                 prompt=analysis_prompt,
                 system_prompt=system_prompt,
-                temperature=0.3  # Lower temperature for more consistent analysis
+                temperature=0.3
             )
             
             # Parse and validate response
@@ -76,7 +76,6 @@ class OllamaClient(LLMClient):
             
         except Exception as e:
             logger.error(f"Error analyzing job description: {str(e)}")
-            # Return a structured error response
             return {
                 "valid": False,
                 "summary": f"Error analyzing job description: {str(e)}",
@@ -85,6 +84,35 @@ class OllamaClient(LLMClient):
                 "company_culture": "Error during analysis",
                 "estimated_salary_range": "Error during analysis"
             }
+
+    async def validate_job(
+        self,
+        job_description: str,
+        experience_years: Optional[int] = None,
+        required_skills: Optional[List[str]] = None
+    ) -> bool:
+        """Quick validation of job requirements using Ollama."""
+        try:
+            system_prompt = get_system_prompt()
+            validation_prompt = get_validation_prompt(
+                job_description=job_description,
+                experience_years=experience_years,
+                required_skills=required_skills
+            )
+            
+            # Generate response with very low temperature for consistent validation
+            response = await self.generate(
+                prompt=validation_prompt,
+                system_prompt=system_prompt,
+                temperature=0.1
+            )
+            
+            # Parse the boolean response
+            return ResponseParser.parse_validation_response(response)
+            
+        except Exception as e:
+            logger.error(f"Error validating job: {str(e)}")
+            return False
 
 class GeminiClient(LLMClient):
     def __init__(self):
@@ -99,7 +127,6 @@ class GeminiClient(LLMClient):
     ) -> str:
         """Generate a response using Gemini."""
         try:
-            # Combine system prompt and user prompt if system prompt exists
             full_prompt = f"{system_prompt}\n\n{prompt}" if system_prompt else prompt
             
             response = await self.model.generate_content_async(
@@ -123,7 +150,6 @@ class GeminiClient(LLMClient):
     ) -> Dict:
         """Analyze a job description using Gemini."""
         try:
-            # Get prompts
             system_prompt = get_system_prompt()
             analysis_prompt = get_analysis_prompt(
                 job_description=job_description,
@@ -133,14 +159,12 @@ class GeminiClient(LLMClient):
                 required_skills=required_skills
             )
             
-            # Generate response with lower temperature for more focused output
             response = await self.generate(
                 prompt=analysis_prompt,
                 system_prompt=system_prompt,
-                temperature=0.3  # Lower temperature for more consistent analysis
+                temperature=0.3
             )
             
-            # Parse and validate response
             parsed_response = ResponseParser.parse_json_response(response)
             validated_response = ResponseParser.validate_analysis_response(parsed_response)
             
@@ -156,6 +180,33 @@ class GeminiClient(LLMClient):
                 "company_culture": "Error during analysis",
                 "estimated_salary_range": "Error during analysis"
             }
+
+    async def validate_job(
+        self,
+        job_description: str,
+        experience_years: Optional[int] = None,
+        required_skills: Optional[List[str]] = None
+    ) -> bool:
+        """Quick validation of job requirements using Gemini."""
+        try:
+            system_prompt = get_system_prompt()
+            validation_prompt = get_validation_prompt(
+                job_description=job_description,
+                experience_years=experience_years,
+                required_skills=required_skills
+            )
+            
+            response = await self.generate(
+                prompt=validation_prompt,
+                system_prompt=system_prompt,
+                temperature=0.1
+            )
+            
+            return ResponseParser.parse_validation_response(response)
+            
+        except Exception as e:
+            logger.error(f"Error validating job with Gemini: {str(e)}")
+            return False
 
 def get_llm_client() -> LLMClient:
     """Get the appropriate LLM client based on configuration."""
