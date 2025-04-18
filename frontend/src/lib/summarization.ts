@@ -1,3 +1,5 @@
+import { logger } from './logger';
+
 interface JobAnalysisRequest {
     description: string;
     url: string;
@@ -23,8 +25,17 @@ export async function analyzeJobDescription(
     url: string,
     options: Partial<Omit<JobAnalysisRequest, 'description' | 'url'>> = {}
 ): Promise<JobAnalysisResponse> {
+    const requestId = Math.random().toString(36).substring(7);
+    const context = `JobAnalysis[${requestId}]`;
+    
     try {
-        const response = await fetch(`${SUMMARIZATION_API_URL}/api/v1/summarize`, {
+        logger.info(`Starting job analysis for URL: ${url}`, { context });
+        logger.debug(`Analysis options: ${JSON.stringify(options)}`, { context });
+
+        const endpoint = `${SUMMARIZATION_API_URL}/api/v1/summarize`;
+        logger.info(`Making request to: ${endpoint}`, { context });
+
+        const response = await fetch(endpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -39,14 +50,24 @@ export async function analyzeJobDescription(
             }),
         });
 
+        logger.info(`Received response with status: ${response.status}`, { context });
+
         if (!response.ok) {
             const error = await response.json();
+            logger.error(`API error: ${error.detail || 'Unknown error'}`, { context });
             throw new Error(error.detail || 'Failed to analyze job description');
         }
 
-        return response.json();
+        const data = await response.json();
+        logger.info('Job analysis completed successfully', { context });
+        logger.debug(`Analysis result: ${JSON.stringify(data)}`, { context });
+
+        return data;
     } catch (error) {
-        console.error('Error analyzing job description:', error);
+        logger.error(`Error analyzing job description: ${error instanceof Error ? error.message : 'Unknown error'}`, { 
+            context,
+            error: error instanceof Error ? error.stack : undefined
+        });
         throw error;
     }
 } 

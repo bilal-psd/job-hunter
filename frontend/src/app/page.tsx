@@ -10,6 +10,7 @@ import { ManualSearchForm } from '@/components/features/manual-search-form';
 import { AIWizardForm } from '@/components/features/ai-wizard-form';
 import { JobList } from '@/components/features/job-list';
 import { analyzeJobDescription } from '@/lib/summarization';
+import { logger } from '@/lib/logger';
 
 interface Job {
   title: string;
@@ -36,9 +37,16 @@ export default function Home() {
   const [jobs, setJobs] = useState<Job[]>([]);
 
   const analyzeJob = async (job: Job, index: number, formData: any) => {
-    if (!job.description || !job.link) return job;
+    const context = `JobAnalysis[${job.link}]`;
+    
+    if (!job.description || !job.link) {
+      logger.warn('Skipping job analysis - missing description or link', { context });
+      return job;
+    }
 
     try {
+      logger.info(`Starting analysis for job: ${job.title} at ${job.company}`, { context });
+      
       // Update job status to analyzing
       setJobs(prev => prev.map((j, i) => 
         i === index ? { ...j, isAnalyzing: true, analysisError: undefined } : j
@@ -55,6 +63,8 @@ export default function Home() {
         }
       );
       
+      logger.info(`Analysis completed for job: ${job.title}`, { context });
+      
       // Update job with analysis results
       setJobs(prev => prev.map((j, i) => 
         i === index ? { ...j, analysis, isAnalyzing: false } : j
@@ -63,6 +73,10 @@ export default function Home() {
       return { ...job, analysis };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to analyze job description';
+      logger.error(`Error analyzing job: ${errorMessage}`, { 
+        context,
+        error: error instanceof Error ? error.stack : undefined
+      });
       
       // Update job with error state
       setJobs(prev => prev.map((j, i) => 
@@ -74,9 +88,18 @@ export default function Home() {
   };
 
   const handleSearch = async (data: any) => {
+    const context = 'JobSearch';
+    logger.info('Starting job search', { context });
+    logger.debug(`Search parameters: ${JSON.stringify(data)}`, { context });
+    
     setIsLoading(true);
     try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/scrape`, data);
+      const endpoint = `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/scrape`;
+      logger.info(`Making request to: ${endpoint}`, { context });
+      
+      const response = await axios.post(endpoint, data);
+      logger.info(`Received response with status: ${response.status}`, { context });
+      
       const baseJobs: Job[] = response.data.map((job: any) => ({
         title: job.title,
         company: job.company,
@@ -87,25 +110,34 @@ export default function Home() {
         description: job.description
       }));
 
+      logger.info(`Found ${baseJobs.length} jobs`, { context });
+
       // Set initial jobs without analysis
       setJobs(baseJobs);
       
       // Start analysis for each job with a description
+      logger.info('Starting job analysis for all jobs', { context });
       const analyzedJobs = await Promise.all(
         baseJobs.map((job, index) => analyzeJob(job, index, data))
       );
 
       // Filter out invalid jobs and update state
       const validJobs = analyzedJobs.filter(job => job.analysis?.valid !== false);
+      logger.info(`Analysis completed. ${validJobs.length} valid jobs found`, { context });
+      
       setJobs(validJobs);
 
       toast.success('Jobs fetched and analyzed successfully!');
     } catch (error: any) {
       const errorMessage = error.response?.data?.detail || error.message || 'Failed to fetch jobs';
+      logger.error(`Error during job search: ${errorMessage}`, { 
+        context,
+        error: error instanceof Error ? error.stack : undefined
+      });
       toast.error(errorMessage);
-      console.error('Error details:', error.response?.data || error);
     } finally {
       setIsLoading(false);
+      logger.info('Job search completed', { context });
     }
   };
 
