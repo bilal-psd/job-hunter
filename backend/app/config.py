@@ -27,10 +27,7 @@ class Settings(BaseSettings):
     GEMINI_MODEL: str = "gemini-2.0-flash"
     
     # Redis Configuration
-    REDIS_HOST: str = "localhost"
-    REDIS_PORT: int = 6379
-    REDIS_DB: int = 0
-    REDIS_PASSWORD: str = ""  # Will be set from environment
+    REDIS_URL: str = "redis://localhost:6379/0"  # Default local Redis URL
     
     # Cache Configuration
     CACHE_EXPIRATION: int = 86400  # 24 hours in seconds
