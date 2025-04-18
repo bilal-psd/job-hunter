@@ -142,24 +142,25 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-background py-12 px-4 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-[#0d1117] py-12 px-4 sm:px-6 lg:px-8">
       <Toaster />
       <div className="max-w-7xl mx-auto">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-foreground mb-8">Job Hunter</h1>
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-[#c9d1d9]">Job Hunter</h1>
+          <p className="mt-2 text-[#8b949e]">Find your next job opportunity with AI assistance</p>
         </div>
 
-        <Card className="mb-8">
+        <Card className="mb-8 bg-[#161b22] border-[#30363d]">
           <CardContent className="pt-6">
             <Tabs defaultValue="manual" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="manual">Manual Search</TabsTrigger>
-                <TabsTrigger value="ai">AI Job Wizard</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 bg-[#21262d] border border-[#30363d]">
+                <TabsTrigger value="manual" className="data-[state=active]:bg-[#30363d] data-[state=active]:text-[#c9d1d9]">Manual Search</TabsTrigger>
+                <TabsTrigger value="ai" className="data-[state=active]:bg-[#30363d] data-[state=active]:text-[#c9d1d9]">AI Job Wizard</TabsTrigger>
               </TabsList>
-              <TabsContent value="manual">
+              <TabsContent value="manual" className="mt-6">
                 <ManualSearchForm onSubmit={handleSearch} isLoading={isLoading} />
               </TabsContent>
-              <TabsContent value="ai">
+              <TabsContent value="ai" className="mt-6">
                 <AIWizardForm onSubmit={handleSearch} isLoading={isLoading} />
               </TabsContent>
             </Tabs>
