@@ -2,28 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Building2, MapPin, Calendar, DollarSign, Briefcase, Brain, Users, AlertCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Loader2 } from 'lucide-react';
-
-interface Job {
-  title: string;
-  company: string;
-  location: string;
-  date_posted: string;
-  link: string;
-  salary?: string;
-  description?: string;
-  analysis?: {
-    valid: boolean;
-    analysis: {
-      summary: string;
-      key_skills: string[];
-      required_experience: string;
-      company_culture: string;
-      estimated_salary_range: string;
-    };
-  };
-  isAnalyzing?: boolean;
-  analysisError?: string;
-}
+import { Job } from '@/types/job';
 
 interface JobListProps {
   jobs: Job[];

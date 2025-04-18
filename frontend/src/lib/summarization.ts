@@ -1,4 +1,5 @@
 import { logger } from './logger';
+import { Job } from '@/types/job';
 
 interface JobAnalysisRequest {
     description: string;
@@ -9,15 +10,6 @@ interface JobAnalysisRequest {
     required_skills?: string[];
 }
 
-interface JobAnalysisResponse {
-    valid: boolean;
-    summary: string;
-    key_skills: string[];
-    required_experience: string;
-    company_culture: string;
-    estimated_salary_range: string;
-}
-
 // Use the main backend URL for summarization
 const BACKEND_API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL || 'http://localhost:8001';
 
@@ -25,7 +17,7 @@ export async function analyzeJobDescription(
     description: string,
     url: string,
     options: Partial<Omit<JobAnalysisRequest, 'description' | 'url'>> = {}
-): Promise<JobAnalysisResponse> {
+): Promise<Job['analysis']> {
     const requestId = Math.random().toString(36).substring(7);
     const context = `JobAnalysis[${requestId}]`;
     
@@ -65,7 +57,7 @@ export async function analyzeJobDescription(
 
         return data;
     } catch (error) {
-        logger.error(`Error analyzing job description: ${error instanceof Error ? error.message : 'Unknown error'}`, { 
+        logger.error(`Error during job analysis: ${error instanceof Error ? error.message : 'Unknown error'}`, { 
             context,
             error: error instanceof Error ? error.stack : undefined
         });
