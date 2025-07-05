@@ -111,4 +111,98 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - [Jobspy](https://github.com/OmkarPathak/jobspy) for job scraping functionality
 - [Ollama](https://ollama.ai/) for local LLM capabilities
-- [Google Gemini](https://ai.google.dev/) for cloud LLM capabilities 
+- [Google Gemini](https://ai.google.dev/) for cloud LLM capabilities
+
+## Recent Changes and Current State
+
+### Resume Upload and Analysis Implementation
+- Added resume upload functionality to AI Job Wizard
+- Implemented PDF and DOCX file processing using PyMuPDF
+- Created resume analysis service with LLM integration
+- Added file type validation and size limits (5MB)
+- Implemented drag-and-drop support for file uploads
+- Added error handling for file processing and analysis
+
+### Caching Strategy Updates
+- Modified the caching strategy to separate job analysis data from validation
+- The `valid` field is no longer cached and is checked dynamically
+- Analysis data is cached separately to improve performance
+- Added a buffer factor of 3x in job scraping to account for invalid jobs
+
+### Type System Updates
+- Created a shared Job type definition in `frontend/src/types/job.ts`
+- Updated frontend components to use the shared type:
+  - `page.tsx`
+  - `job-list.tsx`
+  - `summarization.ts`
+- Fixed type compatibility issues between frontend and backend
+
+### Current Structure
+1. Job Analysis Flow:
+   - User requests N jobs
+   - System scrapes 3N jobs to account for invalidations
+   - Each job is analyzed for:
+     - Validity
+     - Summary
+     - Key skills
+     - Required experience
+     - Company culture
+     - Estimated salary range
+   - Invalid jobs are filtered out
+   - Results are displayed to user
+
+2. Resume Analysis Flow:
+   - User uploads resume through AI Job Wizard
+   - System extracts text from PDF/DOCX
+   - LLM analyzes resume to extract:
+     - Job title/role
+     - Location preferences
+     - Experience years
+     - Key skills
+   - Extracted information is used for job search
+
+3. Caching Implementation:
+   - Analysis data is cached separately from validation
+   - Cache structure:
+     ```typescript
+     {
+       valid: boolean,  // Not cached, checked dynamically
+       analysis: {
+         summary: string,
+         key_skills: string[],
+         required_experience: string,
+         company_culture: string,
+         estimated_salary_range: string
+       }
+     }
+     ```
+
+4. Frontend Components:
+   - `JobList`: Displays job cards with analysis results
+   - `ManualSearchForm`: Basic job search interface
+   - `AIWizardForm`: Resume upload and analysis interface
+
+### Next Steps
+1. Monitor the effectiveness of the 3x buffer factor
+2. Consider implementing progressive loading for job analysis
+3. Add error handling for edge cases in job validation
+4. Implement retry mechanism for failed job analyses 
+
+### Upcoming Features
+1. Pagination
+   - Implement server-side pagination for job results
+   - Add infinite scroll or page-based navigation
+   - Cache paginated results for better performance
+   - Maintain search state across page navigation
+
+2. Resume Optimization
+   - ATS-friendly resume analysis
+   - Keyword optimization suggestions
+   - Format and structure recommendations
+   - Industry-specific best practices
+
+3. Resume Tailoring
+   - AI-powered resume customization for specific job descriptions
+   - Keyword matching and optimization
+   - Skills and experience highlighting
+   - Format adjustments for better ATS compatibility 

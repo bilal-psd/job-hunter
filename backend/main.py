@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Dict, List, Optional
 import logging
@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from app.config import get_settings
 from app.services.job_analysis import JobAnalysisService
 from app.services.job_scraping import JobScrapingService
+from app.services.resume_analysis import ResumeAnalysisService
 
 # Configure logging
 logging.basicConfig(
@@ -22,6 +23,7 @@ logger.info(f"Starting {settings.PROJECT_NAME} with settings: {settings}")
 logger.info("Initializing services...")
 job_analysis_service = JobAnalysisService()
 job_scraping_service = JobScrapingService()
+resume_analysis_service = ResumeAnalysisService()
 logger.info("Services initialized successfully")
 
 app = FastAPI(title=settings.PROJECT_NAME)
@@ -86,6 +88,29 @@ async def scrape(params: Dict):
         return jobs
     except Exception as e:
         logger.error(f"Error during scraping: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/analyze-resume")
+async def analyze_resume(resume: UploadFile = File(...)):
+    """Analyze resume and extract job search parameters."""
+    logger.info(f"Received resume analysis request for file: {resume.filename}")
+    
+    try:
+        # Read file content
+        content = await resume.read()
+        
+        # Analyze resume
+        logger.info("Starting resume analysis...")
+        analysis = await resume_analysis_service.analyze_resume(
+            file_content=content,
+            file_type=resume.content_type
+        )
+        
+        logger.info("Resume analysis completed successfully")
+        return analysis
+        
+    except Exception as e:
+        logger.error(f"Error analyzing resume: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/")

@@ -59,4 +59,33 @@ Provide a JSON response with the following structure:
     "estimated_salary_range": string
 }
 """
+    return prompt
+
+def get_resume_analysis_prompt(resume_text: str) -> str:
+    prompt = f"""Analyze the following resume and extract relevant information for job searching.
+Return the information in a JSON format that can be used to search for matching jobs.
+
+Resume:
+{resume_text}
+
+Extract the following information:
+1. Job title or role that best matches the candidate's experience and skills
+2. Preferred location (if mentioned)
+3. Years of relevant experience
+4. Key skills and technologies
+
+Return the information in this JSON format:
+{{
+    "search_term": "string (job title/role)",
+    "location": "string (preferred location)",
+    "experience_years": number,
+    "required_skills": ["string", "string", ...]
+}}
+
+Make sure to:
+- Use the most recent and relevant job title/role
+- Include only the most important and relevant skills
+- If location is not specified, leave it as an empty string
+- Calculate experience years based on the most relevant experience
+"""
     return prompt 
